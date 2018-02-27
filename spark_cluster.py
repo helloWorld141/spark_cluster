@@ -1,17 +1,24 @@
-import paramiko
+import paramiko, json
 
-hostname = '144.6.226.7'
 port = 22
-username = 'ubuntu'
-pkey_file = 'C:\\Users\\nghia\\Desktop\\private_keys\\Nectar_Key'
 
 if __name__ == "__main__":
+    file = open('spark_cluster.conf').read()
+    config = json.loads(file)
+    pkey_file = config['pkey']
+    master = config['hosts']['master']
+    slaves = config['hosts']['slaves']
+    username = config['username']
+    print(slaves, master)
+    ######
     key = paramiko.RSAKey.from_private_key_file(pkey_file, password='Made565honk')
+    print(key)
     s = paramiko.SSHClient()
     s.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     s.load_system_host_keys()
-    s.connect(hostname=hostname, port=port, pkey=key, auth_timeout=60)
+    s.connect(slaves[0], port, pkey=key, auth_timeout=60)
     print('ssh connected')
+    ######
     stdin, stdout, stderr = s.exec_command('ifconfig')
     print(stderr.read())
     print("Remote stdout:\n" + stdout.read().decode('utf-8'))
